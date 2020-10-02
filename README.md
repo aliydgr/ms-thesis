@@ -1,3 +1,7 @@
+### Universality
+1. Calculate local correlation matrix for biochemical network
+2. Calculate correlation matrix using local matrix
+
 ### Universality - SINDy
 Test theories about universality in network dynamic with SINDy. The process is:
 1. Load a graph.
