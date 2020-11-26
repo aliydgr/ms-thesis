@@ -23,6 +23,6 @@ Finding flow pattern in network dynamic with SINDy.
 3. Find steady state in predicted network
   - Compare with real steady state
   - (**todo**) Compare estimated steady state followed by universality article
-4- Apply a perturbation on steady state
-5- Monitor information flow in network
-6- (**todo**) Check universal pattern with calculated flow
+4. Apply a perturbation on steady state
+5. Monitor information flow in network
+6. (**todo**) Check universal pattern with calculated flow
