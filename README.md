@@ -26,3 +26,10 @@ Finding flow pattern in network dynamic with SINDy.
 4. Apply a perturbation on steady state
 5. Monitor information flow in network
 6. (**todo**) Check universal pattern with calculated flow
+
+### Seismology
+Information flow in seismology data
+
+### Financial
+Predict behaivour of companies status in financial market
+
