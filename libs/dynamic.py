@@ -14,7 +14,7 @@ def library_parser(data, features):
     result = [None] * m
     for i in range(0, m):
         r = 1
-        for elm in features[i].split(' '):
+        for elm in str(features[i]).split(' '):
             var_index = None
             power = 1
             if 'x' in elm:
@@ -52,12 +52,16 @@ def sindy(data, t):
     return result
 
 
-def generate_data(dynamic_model, x0_test, dt):
+def generate_data_by_function(dynamic_func, x0_test, dt):
+    t_test = np.arange(0, TIME_RANGE, dt)
+    x_test = odeint(dynamic_func, x0_test, t_test)
+    return x_test
+
+
+def generate_data_by_model(dynamic_model, x0_test, dt):
     global model
     model = dynamic_model
-    t_test = np.arange(0, TIME_RANGE, dt)
-    x_test = odeint(sindy, x0_test, t_test)
-    return x_test
+    return generate_data_by_function(sindy, x0_test, dt)
 
 
 def create_perturbed_state(alpha, perturbed_node, steady_state):
@@ -65,14 +69,19 @@ def create_perturbed_state(alpha, perturbed_node, steady_state):
     perturbation = np.zeros(number_of_nodes)
     perturbation[perturbed_node] = (steady_state[perturbed_node] if steady_state[perturbed_node] > 0 else 1) * alpha
     perturbed = np.add(steady_state, perturbation)
+    return perturbed
 
 
-def apply_perturbation(dynamic_model, perturbed, dynamic_func, dt):
-    global model
-    model = dynamic_model
+def apply_perturbation_by_function(dynamic_func, perturbed, dt):
     t_perturbed = np.arange(0, TIME_RANGE, dt)
     x_perturbed = odeint(dynamic_func, perturbed, t_perturbed)
     return x_perturbed
+
+
+def apply_perturbation_by_model(dynamic_model, perturbed, dt):
+    global model
+    model = dynamic_model
+    return apply_perturbation_by_function(sindy, perturbed, dt)
 
 
 def flow(X, start=0, stop=float('inf')):
@@ -91,7 +100,7 @@ def flow(X, start=0, stop=float('inf')):
     return result
 
 
-def calculate_g(perturbation, steady_state, dynamic_func, dt):
+def calculate_g_by_function(perturbation, steady_state, dynamic_func, dt):
     number_of_nodes = len(steady_state)
     g_matrix = np.empty((number_of_nodes,number_of_nodes))
     t_perturbed = np.arange(0, TIME_RANGE, dt)
@@ -111,6 +120,12 @@ def calculate_g(perturbation, steady_state, dynamic_func, dt):
             g_matrix[i,j] = abs(dxi_xi/dxj_xj)
 
     return g_matrix
+
+
+def calculate_g_by_model(perturbation, steady_state, dynamic_model, dt):
+    global model
+    model = dynamic_model
+    return calculate_g_by_function(perturbation, steady_state, sindy, dt)
 
 
 def calculate_f(g_matrix, degree):
