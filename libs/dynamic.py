@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from scipy.integrate import odeint
+from networkx.algorithms.distance_measures import diameter
 
 
 STEADY_THRESHOLD = 0.0001
@@ -163,3 +164,30 @@ def calculate_f(g_matrix, degree):
         logf[i] = math.log(f[i], degree[i])
 
     return f, logf
+
+
+def calculate_gamma(g_matrix, graph):
+    def k_neighbors(graph, node, k):
+        def aux(node_list):
+            res = set()
+            for n in node_list:
+                for i in graph.neighbors(n):
+                    res.add(i)
+            return list(res)
+        seen = [node]
+        result = aux(seen)
+        for _ in range(0, k-1):
+            not_seen = [elm for elm in result if elm not in seen]
+            result += [elm for elm in aux(not_seen) if elm not in seen]
+            seen += not_seen
+        return list(set(result))
+
+    def gamma(g_matrix, graph, l):
+        _sum = 0
+        number_of_nodes = len(graph.degree)
+        for j in range(0, number_of_nodes):
+            for i in k_neighbors(graph, j, l):
+                _sum += g_matrix[i][j]
+        return _sum/number_of_nodes
+
+    return [gamma(g_matrix_sindy, graph, l) for l in range(1,diameter(graph)+1)]
