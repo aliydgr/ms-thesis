@@ -15,16 +15,26 @@ def library_parser(data, features):
     for i in range(0, m):
         r = 1
         for elm in str(features[i]).split(' '):
-            var_index = None
-            power = 1
+            value = None
             if 'x' in elm:
                 elm = elm.replace('x', '')
                 if '^' in elm:
-                    var_index = int(elm.split('^')[0])
+                    var_index_str = elm.split('^')[0]
                     power = int(elm.split('^')[1])
+                    if '!' in var_index_str:
+                        var_index = int(var_index_str.split('!')[1])
+                        value = pow(1-data[var_index], power)
+                    else:
+                        var_index = int(var_index_str)
+                        value = pow(data[var_index], power)
                 else:
-                    var_index = int(elm)
-                r = r * pow(data[var_index], power)
+                    if '!' in elm:
+                        var_index = int(elm.split('!')[1])
+                        value = 1-data[var_index]
+                    else:
+                        var_index = int(elm)
+                        value = data[var_index]
+                r = r * value
         result[i] = r
     return result
 
