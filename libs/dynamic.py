@@ -190,4 +190,4 @@ def calculate_gamma(g_matrix, graph):
                 _sum += g_matrix[i][j]
         return _sum/number_of_nodes
 
-    return [gamma(g_matrix_sindy, graph, l) for l in range(1,diameter(graph)+1)]
+    return [gamma(g_matrix, graph, l) for l in range(1,diameter(graph)+1)]
