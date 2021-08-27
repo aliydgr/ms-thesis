@@ -5,14 +5,20 @@ from .dynamic import *
 
 
 def get_graph(number_of_nodes, type_):
+    graph = None
     if type_ == 'erdos_renyi':
-        return nx.erdos_renyi_graph(number_of_nodes, 0.4)
+        graph = nx.erdos_renyi_graph(number_of_nodes, 0.4)
     if type_ == 'small_world':
-        return nx.connected_watts_strogatz_graph(number_of_nodes, 4, 0.9)
+        graph = nx.connected_watts_strogatz_graph(number_of_nodes, 4, 0.9)
     if type_ == 'barabashi':
-        return nx.barabasi_albert_graph(number_of_nodes, 2)
+        graph = nx.barabasi_albert_graph(number_of_nodes, 2)
     if type_ == 'scale_free':
-        return nx.scale_free_graph(number_of_nodes)
+        graph = nx.scale_free_graph(number_of_nodes)
+    
+    if graph:
+        global adjacency
+        adjacency = nx.to_numpy_matrix(graph).A
+        return graph
     print('unsupported type')
 
 
@@ -127,7 +133,5 @@ def get_custom_library(type_):
 
 
 def create_dataset(graph, dynamic_function, x0_train, dt):
-    global adjacency
-    adjacency = nx.to_numpy_matrix(graph).A
-    x_train = generate_data_by_function(_bio, x0_train, dt)
+    x_train = generate_data_by_function(dynamic_function, x0_train, dt)
     return x_train
