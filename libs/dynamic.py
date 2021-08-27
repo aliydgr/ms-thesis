@@ -114,27 +114,16 @@ def calculate_g_by_model(perturbation, steady_state, dynamic_model, dt):
 def calculate_f(g_matrix, degree):
     number_of_nodes = len(g_matrix)
     f = np.zeros(number_of_nodes)
-    logf = np.zeros(number_of_nodes)
     for i in range(0, number_of_nodes):
         f_i = np.zeros(number_of_nodes)
         for n in range(0, number_of_nodes):
-            sum_gmn = 0
-            for m in range(0, number_of_nodes):
-                sum_gmn += g_matrix[m,n]
-            sum_gmi = 0
-            for m in range(0, number_of_nodes):
-                if i==m:
-                    continue
-                sum_gmi += g_matrix[m,i]/sum_gmn
-            f_i[n] = g_matrix[i,n] * sum_gmi
+            zn = sum([g_matrix[m,n] for m in range(0, number_of_nodes)])
+            zni = sum([g_matrix[m,n] - g_matrix[m,i]*g_matrix[i,n]  for m in range(0, number_of_nodes)]) # (38)
+            fni = (zn - zni) / zn # (35)
+            f_i[n] = fni
+        f[i] = (sum(f_i) - f_i[i])/(number_of_nodes-1) # (34)
 
-        for n in range(0, number_of_nodes):
-            if i==n:
-                continue
-            f[i] += f_i[n]
-        f[i] /= (number_of_nodes-1)
-        logf[i] = math.log(f[i], degree[i])
-
+    logf = [math.log(f[i], degree[i]) for i in range(number_of_nodes)]
     return f, logf
 
 
