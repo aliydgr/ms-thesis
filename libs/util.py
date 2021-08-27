@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_flow(flow, mode='single', size=(16, 9), fnumber=1):
@@ -19,11 +20,28 @@ def plot_flow(flow, mode='single', size=(16, 9), fnumber=1):
     plt.show()
 
 
-def find_matrix_dist(matrix):
+def plot_g(g, bins=5, range_=None, f=None, title=None):
+    pg_y,pg_x = np.histogram(g, bins=bins, range=range_)
+    plt.rcParams["figure.figsize"] = (6,4)
+    plt.plot(pg_x[1:],pg_y,'o:')
+    
+    if f:
+        plt.plot(f[0], f[1], '--r')
+    
+    plt.title(title)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel(r'$G$')
+    plt.ylabel(r'$P(G)$')
+    plt.show()
+
+
+def find_matrix_dist(matrix, f=None):
     dist = []
     for row in matrix:
         for ij in row:
-            dist.append(ij)
+            if not np.isnan(ij) and (not f or f(ij)):
+                dist.append(ij)
     return dist
 
 
