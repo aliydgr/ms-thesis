@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from scipy.integrate import odeint
+from scipy.optimize import fsolve
 from networkx.algorithms.distance_measures import diameter
 
 
@@ -40,14 +41,8 @@ def library_parser(data, features):
     return result
 
 
-def find_steady_state(X):
-    prev_state = X[0]
-    for i in range(1,len(X)):
-        state = X[i]
-        diff = np.subtract(state, prev_state)
-        prev_state = state
-        if -STEADY_THRESHOLD < max(np.amax(diff), np.amin(diff), key=abs) < STEADY_THRESHOLD:
-            return state
+def find_steady_state(func, x0):
+    return fsolve(func, x0, args=(0,))
 
 
 def sindy(data, t):
@@ -63,74 +58,54 @@ def sindy(data, t):
     return result
 
 
-def generate_data_by_function(dynamic_func, x0_test, dt):
-    t_test = np.arange(0, TIME_RANGE, dt)
-    x_test = odeint(dynamic_func, x0_test, t_test)
+def generate_data_by_function(dynamic_func, x0, dt, t_range=TIME_RANGE):
+    t_test = np.arange(0, t_range, dt)
+    x_test = odeint(dynamic_func, x0, t_test)
     return x_test
 
 
-def generate_data_by_model(dynamic_model, x0_test, dt):
+def generate_data_by_model(dynamic_model, x0, dt):
     global model
     model = dynamic_model
-    return generate_data_by_function(sindy, x0_test, dt)
+    return generate_data_by_function(sindy, x0, dt)
 
 
 def create_perturbed_state(alpha, perturbed_node, steady_state):
     number_of_nodes = len(steady_state)
     perturbation = np.zeros(number_of_nodes)
-    perturbation[perturbed_node] = (steady_state[perturbed_node] if steady_state[perturbed_node] > 0 else 1) * alpha
+    perturbation[perturbed_node] = steady_state[perturbed_node] * alpha
     perturbed = np.add(steady_state, perturbation)
     return perturbed
 
 
-def apply_perturbation_by_function(dynamic_func, perturbed, dt):
-    t_perturbed = np.arange(0, TIME_RANGE, dt)
-    x_perturbed = odeint(dynamic_func, perturbed, t_perturbed)
-    return x_perturbed
-
-
-def apply_perturbation_by_model(dynamic_model, perturbed, dt):
-    global model
-    model = dynamic_model
-    return apply_perturbation_by_function(sindy, perturbed, dt)
-
-
-def flow(X, start=0, stop=float('inf')):
-    prev_state = X[0]
-    result = [prev_state]
-    for i in range(1,len(X)):
-        state = X[i]
-        diff = np.subtract(state, prev_state)
-        if start < i < stop:
-            temp = [min(abs(s),100) for s in state]
-            result = np.vstack((result, temp))
-        prev_state = state
-        if -STEADY_THRESHOLD < max(np.amax(diff), np.amin(diff), key=abs) < STEADY_THRESHOLD:
-            return result
-    print('chaos state')
+def funcp(data, t, func, p, xp):
+    result = func(data, t)
+    result[p] = xp
     return result
 
 
 def calculate_g_by_function(perturbation, steady_state, dynamic_func, dt):
     number_of_nodes = len(steady_state)
     g_matrix = np.empty((number_of_nodes,number_of_nodes))
-    t_perturbed = np.arange(0, TIME_RANGE, dt)
+    t_perturbed = np.linspace(0, dt, TIME_RANGE)
 
+    flow = []
     for i in range(0, number_of_nodes):
         perturbation_i = np.zeros(number_of_nodes)
         perturbation_i[i] = perturbation[i]
-        perturbed_i = np.add(steady_state, perturbation_i[i])
+        perturbed_i = np.add(steady_state, perturbation_i)
 
-        x_perturbed_i = odeint(dynamic_func, perturbed_i, t_perturbed)
-        final_state_i = x_perturbed_i[-1]
+        x_perturbed_i = odeint(funcp, perturbed_i, t_perturbed, args=(dynamic_func, i, perturbed_i[i])).T
+        flow.append(x_perturbed_i)
+        final_state_i = [row[-1] for row in x_perturbed_i]
         diff_i = np.subtract(final_state_i, steady_state)
 
-        dxi_xi = diff_i[i]/steady_state[i]
+        dxi_xi = perturbed_i[i]/steady_state[i]
         for j in range(0, number_of_nodes):
             dxj_xj = diff_i[j]/steady_state[j]
-            g_matrix[i,j] = abs(dxi_xi/dxj_xj)
+            g_matrix[j,i] = abs(dxj_xj/dxi_xi)
 
-    return g_matrix
+    return g_matrix, flow
 
 
 def calculate_g_by_model(perturbation, steady_state, dynamic_model, dt):
