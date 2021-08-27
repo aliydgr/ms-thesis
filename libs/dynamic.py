@@ -41,7 +41,10 @@ def library_parser(data, features):
     return result
 
 
-def find_steady_state(func, x0):
+def find_steady_state(func, x0, dynamic_model=None):
+    if dynamic_model:
+        global model
+        model = dynamic_model
     return fsolve(func, x0, args=(0,))
 
 
@@ -62,12 +65,6 @@ def generate_data_by_function(dynamic_func, x0, dt, t_range=TIME_RANGE):
     t_test = np.arange(0, t_range, dt)
     x_test = odeint(dynamic_func, x0, t_test)
     return x_test
-
-
-def generate_data_by_model(dynamic_model, x0, dt):
-    global model
-    model = dynamic_model
-    return generate_data_by_function(sindy, x0, dt)
 
 
 def create_perturbed_state(alpha, perturbed_node, steady_state):

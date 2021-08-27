@@ -4,16 +4,16 @@ import pysindy as ps
 from .dynamic import *
 
 
-def get_graph(number_of_nodes, type_):
+def get_graph(number_of_nodes, type_, seed):
     graph = None
     if type_ == 'erdos_renyi':
-        graph = nx.erdos_renyi_graph(number_of_nodes, 0.4)
+        graph = nx.erdos_renyi_graph(number_of_nodes, 0.4, seed=seed)
     if type_ == 'small_world':
-        graph = nx.connected_watts_strogatz_graph(number_of_nodes, 4, 0.9)
-    if type_ == 'barabashi':
-        graph = nx.barabasi_albert_graph(number_of_nodes, 2)
+        graph = nx.connected_watts_strogatz_graph(number_of_nodes, 4, 0.9, seed=seed)
     if type_ == 'scale_free':
-        graph = nx.scale_free_graph(number_of_nodes)
+        graph = nx.barabasi_albert_graph(number_of_nodes, 2, seed=seed)
+    if type_ == 'scale_free_2':
+        graph = nx.scale_free_graph(number_of_nodes, seed=seed)
     
     if graph:
         global adjacency
